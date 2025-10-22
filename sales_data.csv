@@ -1,0 +1,6 @@
+Date,InvoiceNo,Customer,Product,Quantity,Price,Total
+2025-10-01,INV001,John Doe,Laptop,1,60000,60000
+2025-10-01,INV002,Jane Roe,Mouse,2,500,1000
+2025-10-02,INV003,John Doe,Keyboard,1,1500,1500
+2025-10-03,INV004,Alice,Monitor,2,8000,16000
+2025-10-03,INV005,Bob,Laptop,1,60000,60000
