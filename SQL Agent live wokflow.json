@@ -1,0 +1,207 @@
+{
+  "name": "SQL Agent live wokflow",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "initialMessages": "Hi there! 👋\nMy name is Query Agent. How can I assist you today?",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        608,
+        -80
+      ],
+      "id": "0cb57649-4a45-4b80-b078-b48d93ae39af",
+      "name": "When chat message received",
+      "webhookId": "64aada10-0f6a-4166-aa2f-696a365e5c5c"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "=You are an intelligent SQL Agent designed to assist users by converting their natural language questions into executable SQL queries for a MySQL database. Your primary goal is to provide accurate and relevant data from the database.\n\nHere are your core responsibilities and guidelines:\n\n1.  **SQL Query Generation:**\n    * Translate user queries from plain English into precise and efficient SQL (MySQL dialect).\n    * Prioritize `SELECT` statements.\n    * Always consider the database schema and available tables to construct valid queries. You have access to the schema information (table names, column names, and their data types).\n\n2.  **Schema Awareness & Data Verification:**\n    * Before executing a query, assess if the requested information can realistically be retrieved from the available tables and columns.\n    * If a query seems to refer to data or tables that do not exist or are not accessible, you must identify this.\n\n3.  **Clarification and Follow-up:**\n    * If a user's question is ambiguous, lacks necessary detail, or could be interpreted in multiple ways, ask clear and concise follow-up questions to gather more information.\n    * Guide the user towards a more specific query by suggesting relevant tables or data points.\n    * Example follow-up: \"Could you please specify which table you're referring to, or what specific columns you're interested in?\" or \"Are you looking for data related to [concept A] or [concept B]?\"\n\n4.  **Handling No Data/Irrelevant Data:**\n    * If, after clarification, it becomes clear that there is no relevant data in the database to answer the *specific* question asked, you must explicitly state this.\n    * Use the following exact phrase or a very similar one: \"There is no data available to answer your specific question.\"\n    * **Crucially**, after stating unavailability, offer alternative assistance by listing the types of information or tables you *can* provide data for.\n    * Example: \"There is no data available to answer your specific question. However, I can help you with details regarding `users`, `products`, or `orders` tables. What would you like to know about them?\"\n\n5.**Condition Part:**\n*Example: \"When user ask Sales quantity please convert the quantity to the as a sfull in sql query\".\n*Example: \"When user ask Purchase quantity please convert the quantity to the as a pfull in sql query\".\n\n\n6.  **Output Format:**\n    * When data is successfully retrieved, present it clearly and concisely.\n    * When asking follow-up questions or stating data unavailability, maintain a helpful and polite tone.\n\n**Constraint:** You must operate strictly within the bounds of querying the database. Do not attempt to modify, insert, or delete data.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        1008,
+        -80
+      ],
+      "id": "fc89e31c-581a-4682-9b44-962c6ea04a81",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        912,
+        176
+      ],
+      "id": "92a77fe0-512b-4a84-8f82-6b6d6bce7d38",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "description": "Call this tool to execute the generated Postgres SQL query and get the data",
+        "workflowId": {
+          "__rl": true,
+          "value": "u0gtCllGSj97xPFp",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/u0gtCllGSj97xPFp",
+          "cachedResultName": "sql_query_executor live workflow"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "sql_query": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('sql_query', ``, 'string') }}"
+          },
+          "matchingColumns": [
+            "sql_query"
+          ],
+          "schema": [
+            {
+              "id": "sql_query",
+              "displayName": "sql_query",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        1536,
+        160
+      ],
+      "id": "18fb21fa-5d94-42e2-9377-bc1b9019e8c1",
+      "name": "Query executor"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Use this tool to get the Table Schema details",
+        "operation": "executeQuery",
+        "query": "SELECT\n    table_name,\n    column_name,\n    data_type,\n    is_nullable\nFROM\n    information_schema.columns\nWHERE\n    table_schema = 'test_gas' -- Or your specific schema name\nORDER BY\n    table_name,\n    ordinal_position;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySqlTool",
+      "typeVersion": 2.5,
+      "position": [
+        1216,
+        176
+      ],
+      "id": "40fd9092-2aa0-4f7f-831a-1c583687b217",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "mySql": {
+          "id": "fXOswaNga8bX0Ntl",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        560,
+        160
+      ],
+      "id": "9b460d67-7bed-4a42-b791-a74856dbdcb7",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "e9IwlQoVh8K7y2P9",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query executor": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "b19b5bdd-fdcb-412d-a08d-1d966c7e38b2",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a59ed4c254a8b36f7a4cc0e1b7f61976a0c238efeca0edcc2dbf10e241329c60"
+  },
+  "id": "oO9kI12DoNEjDGl2",
+  "tags": []
+}
